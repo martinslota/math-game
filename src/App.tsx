@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FractionDisplay } from './components/FractionDisplay';
-import { buildLevelExpressions, totalLevels } from './game/levels';
+import { PROBLEMS_PER_LEVEL, buildLevelExpressions, totalLevels } from './game/levels';
 import { evaluateExpression, fractionToKey, parseFriendlyFractionInput } from './game/fractionMath';
 import { useGameAudio } from './audio';
 import type { GamePhase } from './types';
@@ -21,17 +21,19 @@ export const App = () => {
   const [phase, setPhase] = useState<GamePhase>('landing');
   const [lives, setLives] = useState(3);
   const [levelIndex, setLevelIndex] = useState(0);
+  const [problemIndex, setProblemIndex] = useState(0);
   const [answerInput, setAnswerInput] = useState('');
   const [feedback, setFeedback] = useState('');
   const [highScore, setHighScore] = useState(0);
-  const [expressions, setExpressions] = useState(() => buildLevelExpressions());
+  const [levelExpressions, setLevelExpressions] = useState(() => buildLevelExpressions());
   const { isMuted, toggleMuted, playEffect, startMusic, stopMusic } = useGameAudio();
 
   useEffect(() => {
     setHighScore(readStoredHighScore());
   }, []);
 
-  const currentExpression = expressions[levelIndex];
+  const currentLevel = levelExpressions[levelIndex] ?? [];
+  const currentExpression = currentLevel[problemIndex];
 
   const moveToLanding = () => {
     playEffect('click');
@@ -40,10 +42,11 @@ export const App = () => {
   };
 
   const startGame = () => {
-    setExpressions(buildLevelExpressions());
+    setLevelExpressions(buildLevelExpressions());
     setPhase('playing');
     setLives(3);
     setLevelIndex(0);
+    setProblemIndex(0);
     setAnswerInput('');
     setFeedback('');
     playEffect('start');
@@ -85,14 +88,24 @@ export const App = () => {
 
     if (isCorrect) {
       playEffect('correct');
+      const nextProblem = problemIndex + 1;
+
+      if (nextProblem < PROBLEMS_PER_LEVEL) {
+        setProblemIndex(nextProblem);
+        setAnswerInput('');
+        setFeedback(`Correct! Problem ${nextProblem + 1} of ${PROBLEMS_PER_LEVEL}.`);
+        return;
+      }
+
       const nextLevel = levelIndex + 1;
       if (nextLevel >= totalLevels) {
         finishGame('won', totalLevels);
         setFeedback('Amazing! You solved all 10 levels!');
       } else {
         setLevelIndex(nextLevel);
+        setProblemIndex(0);
         setAnswerInput('');
-        setFeedback('Correct! Next level!');
+        setFeedback(`Level cleared! Welcome to level ${nextLevel + 1}.`);
       }
       return;
     }
@@ -149,7 +162,9 @@ export const App = () => {
     return (
       <div className="card game-card">
         <div className="game-header">
-          <p className="level-pill" data-testid="level-indicator">Level {levelIndex + 1} / {totalLevels}</p>
+          <p className="level-pill" data-testid="level-indicator">
+            Level {levelIndex + 1} / {totalLevels} · Problem {problemIndex + 1} / {PROBLEMS_PER_LEVEL}
+          </p>
           <p className="lives" data-testid="lives-indicator">Lives: {'❤️'.repeat(lives)}</p>
         </div>
 
@@ -183,7 +198,7 @@ export const App = () => {
         {feedback && <p className="feedback">{feedback}</p>}
       </div>
     );
-  }, [answerInput, currentExpression, feedback, highScore, levelIndex, lives, phase]);
+  }, [answerInput, currentExpression, feedback, highScore, levelIndex, lives, phase, problemIndex]);
 
   return (
     <main className="app-shell">

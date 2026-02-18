@@ -2,10 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 type SoundName = 'start' | 'correct' | 'wrong' | 'win' | 'lose' | 'click';
 
-// Freely available audio resources.
-// Background music: Pixabay (royalty free) https://pixabay.com/music/id-147355/
-// Sound effects: Google Actions sound library (CC BY 4.0) https://actions.google.com/sounds/
-const BACKGROUND_MUSIC_URL = 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=gentle-ambient-piano-147355.mp3';
+const BACKGROUND_MUSIC_URL =
+  'https://actions.google.com/sounds/v1/ambiences/amusement_arcade.ogg';
 
 const SOUND_EFFECTS: Record<SoundName, string> = {
   start: 'https://actions.google.com/sounds/v1/cartoon/concussive_hit_guitar_boing.ogg',
@@ -19,18 +17,32 @@ const SOUND_EFFECTS: Record<SoundName, string> = {
 const createAudio = (url: string, loop = false, volume = 1): HTMLAudioElement => {
   const audio = new Audio(url);
   audio.loop = loop;
-  audio.preload = 'none';
+  audio.preload = 'auto';
   audio.volume = volume;
   return audio;
 };
 
+const EFFECT_POOL_SIZE = 3;
+
 export const useGameAudio = () => {
   const [isMuted, setIsMuted] = useState(false);
   const backgroundRef = useRef<HTMLAudioElement | null>(null);
+  const effectIndexesRef = useRef<Record<SoundName, number>>({
+    start: 0,
+    correct: 0,
+    wrong: 0,
+    win: 0,
+    lose: 0,
+    click: 0
+  });
 
   const effects = useMemo(() => {
-    const entries = Object.entries(SOUND_EFFECTS).map(([key, url]) => [key, createAudio(url, false, 0.6)]);
-    return Object.fromEntries(entries) as Record<SoundName, HTMLAudioElement>;
+    const entries = Object.entries(SOUND_EFFECTS).map(([key, url]) => [
+      key,
+      Array.from({ length: EFFECT_POOL_SIZE }, () => createAudio(url, false, 0.6))
+    ]);
+
+    return Object.fromEntries(entries) as Record<SoundName, HTMLAudioElement[]>;
   }, []);
 
   useEffect(() => {
@@ -48,8 +60,10 @@ export const useGameAudio = () => {
       backgroundRef.current.muted = isMuted;
     }
 
-    Object.values(effects).forEach((effect) => {
-      effect.muted = isMuted;
+    Object.values(effects).forEach((pool) => {
+      pool.forEach((effect) => {
+        effect.muted = isMuted;
+      });
     });
   }, [effects, isMuted]);
 
@@ -58,11 +72,15 @@ export const useGameAudio = () => {
       return;
     }
 
-    const sound = effects[name];
-    if (!sound) {
+    const pool = effects[name];
+    if (!pool) {
       return;
     }
 
+    const nextIndex = effectIndexesRef.current[name] % EFFECT_POOL_SIZE;
+    effectIndexesRef.current[name] += 1;
+
+    const sound = pool[nextIndex];
     sound.currentTime = 0;
     void sound.play().catch(() => {
       // Browsers can block playback until a user gesture. Ignore quietly.

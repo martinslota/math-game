@@ -167,37 +167,13 @@ h1 {
 }
 
 .fraction-expression {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
+  display: inline-block;
   color: #1f2960;
-}
-
-.sign,
-.whole-number {
   font-weight: 800;
 }
 
-.fraction {
-  display: inline-grid;
-  grid-template-rows: auto 2px auto;
-  justify-items: center;
-  min-width: 2.2rem;
-  line-height: 1.05;
-  padding: 0 0.1rem;
-}
-
-.fraction-bar {
-  width: 100%;
-  background: currentColor;
-  border-radius: 99px;
-  align-self: center;
-}
-
-.numerator,
-.denominator {
-  font-size: 0.73em;
-  font-weight: 800;
+.fraction-expression mfrac {
+  font-size: 0.95em;
 }
 
 .audio-toggle {
