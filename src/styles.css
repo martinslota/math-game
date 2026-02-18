@@ -1,9 +1,10 @@
 :root {
-  font-family: 'Trebuchet MS', 'Comic Sans MS', system-ui, sans-serif;
-  line-height: 1.4;
-  font-weight: 400;
-  color: #2e244f;
-  background: linear-gradient(145deg, #ffebf4, #d8f6ff);
+  color-scheme: only light;
+  font-family: 'Nunito', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  line-height: 1.45;
+  font-weight: 500;
+  color: #1c2142;
+  background: radial-gradient(circle at top left, #fef4db 0%, #f1f7ff 42%, #f4ecff 100%);
 }
 
 * {
@@ -15,11 +16,16 @@ body {
   min-height: 100vh;
 }
 
+button,
+input {
+  font: inherit;
+}
+
 .app-shell {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 1.5rem;
+  padding: clamp(1rem, 2vw, 2rem);
   position: relative;
   overflow: hidden;
 }
@@ -27,12 +33,13 @@ body {
 .card {
   position: relative;
   z-index: 1;
-  width: min(680px, 100%);
-  background: #fff9fe;
-  border: 4px solid #322f58;
-  border-radius: 24px;
-  box-shadow: 0 12px 0 #9f80f3;
-  padding: 2rem;
+  width: min(720px, 100%);
+  background: rgba(255, 255, 255, 0.94);
+  border: 3px solid #1d2858;
+  border-radius: 28px;
+  box-shadow: 0 18px 32px rgba(40, 58, 128, 0.2), 0 8px 0 #9caaf7;
+  padding: clamp(1.25rem, 3vw, 2.2rem);
+  backdrop-filter: blur(4px);
 }
 
 .landing-card {
@@ -40,176 +47,214 @@ body {
 }
 
 h1 {
-  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-size: clamp(2rem, 5.5vw, 3.25rem);
   margin: 0;
+  letter-spacing: 0.02em;
 }
 
 .subtitle {
-  margin: 0.75rem auto 1rem;
-  max-width: 40ch;
-  font-size: 1.1rem;
+  margin: 0.85rem auto 1.15rem;
+  max-width: 42ch;
+  font-size: 1.08rem;
+  color: #3e4a83;
 }
 
 .high-score {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   margin: 0 0 1.25rem;
 }
 
 .primary-button,
-.secondary-button {
-  font: inherit;
+.secondary-button,
+.audio-toggle {
   border-radius: 14px;
-  padding: 0.75rem 1.2rem;
-  border: 3px solid #322f58;
+  padding: 0.7rem 1.25rem;
+  border: 2px solid #1d2858;
   cursor: pointer;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  font-weight: 700;
 }
 
 .primary-button {
-  background: #ffd447;
-  color: #322f58;
+  background: linear-gradient(180deg, #ffeb7c, #ffca3b);
+  color: #1e2757;
 }
 
 .secondary-button {
-  margin-left: 0.75rem;
-  background: #c8effd;
-  color: #322f58;
+  margin-left: 0.7rem;
+  background: linear-gradient(180deg, #d4f2ff, #b3e6ff);
+  color: #1e2757;
 }
 
 .primary-button:hover,
-.secondary-button:hover {
-  transform: translateY(-2px);
+.secondary-button:hover,
+.audio-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(43, 52, 113, 0.2);
+}
+
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.audio-toggle:focus-visible,
+.answer-input:focus-visible {
+  outline: 3px solid #4f74ff;
+  outline-offset: 2px;
 }
 
 .game-header {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.7rem;
 }
 
 .level-pill,
 .lives {
   margin: 0;
-  background: #efe4ff;
-  border: 2px solid #322f58;
+  background: #edf0ff;
+  border: 2px solid #1d2858;
   border-radius: 999px;
-  padding: 0.35rem 0.75rem;
-  font-weight: 700;
+  padding: 0.3rem 0.8rem;
+  font-weight: 800;
 }
 
 .instruction {
-  margin-bottom: 0.4rem;
-  font-size: 1.2rem;
+  margin: 1.25rem 0 0.55rem;
+  font-size: 1.12rem;
+  color: #2e3a72;
 }
 
 .expression {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  margin: 0 0 1.3rem;
-  font-size: 1.8rem;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 16px;
+  background: #f7f9ff;
+  border: 2px dashed #9cabf3;
+  font-size: clamp(1.4rem, 4vw, 2rem);
   flex-wrap: wrap;
 }
 
 .operation,
 .question-mark {
-  font-weight: 700;
+  font-weight: 800;
+  color: #222a5f;
 }
 
 .input-label {
   display: block;
   margin-bottom: 0.4rem;
   font-size: 1rem;
+  font-weight: 700;
 }
 
 .answer-input {
   width: 100%;
-  font: inherit;
-  font-size: 1.1rem;
-  border: 3px solid #322f58;
+  font-size: 1.08rem;
+  border: 2px solid #24306d;
   border-radius: 12px;
   padding: 0.65rem 0.8rem;
   margin-bottom: 0.85rem;
+  background: #ffffff;
 }
 
 .feedback {
   margin-top: 1rem;
-  font-weight: 700;
+  font-weight: 800;
+  color: #28367f;
 }
 
-.fraction-wrapper {
+.fraction-expression {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
+  color: #1f2960;
 }
 
 .sign,
 .whole-number {
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .fraction {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 2.3rem;
+  display: inline-grid;
+  grid-template-rows: auto 2px auto;
+  justify-items: center;
+  min-width: 2.2rem;
   line-height: 1.05;
+  padding: 0 0.1rem;
 }
 
 .fraction-bar {
-  display: block;
   width: 100%;
-  height: 3px;
   background: currentColor;
-  border-radius: 2px;
-  margin: 2px 0;
+  border-radius: 99px;
+  align-self: center;
 }
 
 .numerator,
 .denominator {
-  font-size: 0.82em;
-  font-weight: 700;
+  font-size: 0.73em;
+  font-weight: 800;
+}
+
+.audio-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(2px);
+  color: #1e2757;
 }
 
 .bg-bubble {
   position: absolute;
   border-radius: 999px;
-  opacity: 0.33;
-  filter: blur(1px);
+  opacity: 0.34;
+  filter: blur(1.3px);
 }
 
 .bubble-a {
-  width: 240px;
-  height: 240px;
-  background: #ffd447;
-  top: -45px;
-  left: -70px;
+  width: 290px;
+  height: 290px;
+  background: #ffd66a;
+  top: -60px;
+  left: -85px;
 }
 
 .bubble-b {
-  width: 180px;
-  height: 180px;
-  background: #86dcff;
-  bottom: 8%;
+  width: 200px;
+  height: 200px;
+  background: #9edcff;
+  bottom: 7%;
   right: 8%;
 }
 
 .bubble-c {
-  width: 120px;
-  height: 120px;
-  background: #ff98bf;
+  width: 125px;
+  height: 125px;
+  background: #ff9fd1;
   top: 14%;
   right: 18%;
 }
 
 @media (max-width: 640px) {
   .card {
-    padding: 1.2rem;
+    padding: 1.1rem;
   }
 
   .secondary-button {
     margin-left: 0;
-    margin-top: 0.75rem;
+    margin-top: 0.65rem;
+  }
+
+  .audio-toggle {
+    top: 0.65rem;
+    right: 0.65rem;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.88rem;
   }
 }
