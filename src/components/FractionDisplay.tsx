@@ -28,23 +28,28 @@ export const FractionDisplay = ({ value }: FractionDisplayProps) => {
   const fraction = simplifyFraction(value);
 
   if (fraction.denominator === 1) {
-    return <span className="whole-number">{fraction.numerator}</span>;
+    return (
+      <math className="fraction-expression" aria-label={`${fraction.numerator}`}>
+        <mn>{fraction.numerator}</mn>
+      </math>
+    );
   }
 
   const { denominator, isNegative, numeratorRemainder, wholePart } = toMixedParts(value);
 
   return (
-    <span className="fraction-expression" aria-label={`${fraction.numerator}/${fraction.denominator}`}>
-      {isNegative && <span className="sign">−</span>}
-      {wholePart > 0 && <span className="whole-number">{wholePart}</span>}
-      {numeratorRemainder > 0 && (
-        <span className="fraction" role="math" aria-hidden="true">
-          <span className="numerator">{numeratorRemainder}</span>
-          <span className="fraction-bar" />
-          <span className="denominator">{denominator}</span>
-        </span>
-      )}
-      {numeratorRemainder === 0 && wholePart === 0 && <span className="whole-number">0</span>}
-    </span>
+    <math className="fraction-expression" aria-label={`${fraction.numerator}/${fraction.denominator}`}>
+      <mrow>
+        {isNegative && <mo>−</mo>}
+        {wholePart > 0 && <mn>{wholePart}</mn>}
+        {numeratorRemainder > 0 && (
+          <mfrac>
+            <mn>{numeratorRemainder}</mn>
+            <mn>{denominator}</mn>
+          </mfrac>
+        )}
+        {numeratorRemainder === 0 && wholePart === 0 && <mn>0</mn>}
+      </mrow>
+    </math>
   );
 };
