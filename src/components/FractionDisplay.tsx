@@ -5,6 +5,25 @@ type FractionDisplayProps = {
   value: Fraction;
 };
 
+type RenderedFractionParts = {
+  denominator: number;
+  isNegative: boolean;
+  numeratorRemainder: number;
+  wholePart: number;
+};
+
+const toMixedParts = (value: Fraction): RenderedFractionParts => {
+  const fraction = simplifyFraction(value);
+  const absoluteNumerator = Math.abs(fraction.numerator);
+
+  return {
+    denominator: fraction.denominator,
+    isNegative: fraction.numerator < 0,
+    numeratorRemainder: absoluteNumerator % fraction.denominator,
+    wholePart: Math.trunc(absoluteNumerator / fraction.denominator)
+  };
+};
+
 export const FractionDisplay = ({ value }: FractionDisplayProps) => {
   const fraction = simplifyFraction(value);
 
@@ -12,23 +31,20 @@ export const FractionDisplay = ({ value }: FractionDisplayProps) => {
     return <span className="whole-number">{fraction.numerator}</span>;
   }
 
-  const absNumerator = Math.abs(fraction.numerator);
-  const whole = Math.trunc(absNumerator / fraction.denominator);
-  const remainder = absNumerator % fraction.denominator;
-  const isNegative = fraction.numerator < 0;
+  const { denominator, isNegative, numeratorRemainder, wholePart } = toMixedParts(value);
 
   return (
-    <span className="fraction-wrapper" aria-label={`${fraction.numerator}/${fraction.denominator}`}>
-      {isNegative && <span className="sign">-</span>}
-      {whole > 0 && <span className="whole-number">{whole}</span>}
-      {remainder > 0 && (
-        <span className="fraction" role="math">
-          <span className="numerator">{remainder}</span>
+    <span className="fraction-expression" aria-label={`${fraction.numerator}/${fraction.denominator}`}>
+      {isNegative && <span className="sign">−</span>}
+      {wholePart > 0 && <span className="whole-number">{wholePart}</span>}
+      {numeratorRemainder > 0 && (
+        <span className="fraction" role="math" aria-hidden="true">
+          <span className="numerator">{numeratorRemainder}</span>
           <span className="fraction-bar" />
-          <span className="denominator">{fraction.denominator}</span>
+          <span className="denominator">{denominator}</span>
         </span>
       )}
-      {remainder === 0 && whole === 0 && <span className="whole-number">0</span>}
+      {numeratorRemainder === 0 && wholePart === 0 && <span className="whole-number">0</span>}
     </span>
   );
 };

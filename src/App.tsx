@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FractionDisplay } from './components/FractionDisplay';
 import { buildLevelExpressions, totalLevels } from './game/levels';
 import { evaluateExpression, fractionToKey, parseFriendlyFractionInput } from './game/fractionMath';
+import { useGameAudio } from './audio';
 import type { GamePhase } from './types';
 
 const HIGH_SCORE_KEY = 'fraction-quest-high-score';
@@ -24,12 +25,19 @@ export const App = () => {
   const [feedback, setFeedback] = useState('');
   const [highScore, setHighScore] = useState(0);
   const [expressions, setExpressions] = useState(() => buildLevelExpressions());
+  const { isMuted, toggleMuted, playEffect, startMusic, stopMusic } = useGameAudio();
 
   useEffect(() => {
     setHighScore(readStoredHighScore());
   }, []);
 
   const currentExpression = expressions[levelIndex];
+
+  const moveToLanding = () => {
+    playEffect('click');
+    setPhase('landing');
+    stopMusic();
+  };
 
   const startGame = () => {
     setExpressions(buildLevelExpressions());
@@ -38,6 +46,8 @@ export const App = () => {
     setLevelIndex(0);
     setAnswerInput('');
     setFeedback('');
+    playEffect('start');
+    startMusic();
   };
 
   const finishGame = (newPhase: Extract<GamePhase, 'won' | 'lost'>, finalLevel: number) => {
@@ -48,6 +58,14 @@ export const App = () => {
       setHighScore(score);
       window.localStorage.setItem(HIGH_SCORE_KEY, String(score));
     }
+
+    if (newPhase === 'won') {
+      playEffect('win');
+    } else {
+      playEffect('lose');
+    }
+
+    stopMusic();
   };
 
   const submitAnswer = () => {
@@ -57,6 +75,7 @@ export const App = () => {
 
     const parsedAnswer = parseFriendlyFractionInput(answerInput);
     if (!parsedAnswer) {
+      playEffect('wrong');
       setFeedback('Please enter a whole number, decimal, fraction (a/b), or mixed number (2 1/3).');
       return;
     }
@@ -65,6 +84,7 @@ export const App = () => {
     const isCorrect = fractionToKey(parsedAnswer) === fractionToKey(expectedAnswer);
 
     if (isCorrect) {
+      playEffect('correct');
       const nextLevel = levelIndex + 1;
       if (nextLevel >= totalLevels) {
         finishGame('won', totalLevels);
@@ -77,6 +97,7 @@ export const App = () => {
       return;
     }
 
+    playEffect('wrong');
     const remainingLives = lives - 1;
     setLives(remainingLives);
     setFeedback('Not quite! Try the next challenge.');
@@ -92,9 +113,9 @@ export const App = () => {
       return (
         <div className="card landing-card">
           <h1>Fraction Quest</h1>
-          <p className="subtitle">A cartoon math adventure through 10 levels of whole numbers and fractions!</p>
+          <p className="subtitle">A bright math adventure through 10 levels of whole numbers and fractions.</p>
           <p className="high-score">High Score: <strong>{highScore}</strong> / {totalLevels}</p>
-          <button type="button" className="primary-button" onClick={startGame}>
+          <button type="button" className="primary-button" data-testid="start-game" onClick={startGame}>
             Start Adventure
           </button>
         </div>
@@ -111,10 +132,10 @@ export const App = () => {
               : `You reached level ${levelIndex + 1}. Dust off and try again!`}
           </p>
           <p className="high-score">High Score: <strong>{highScore}</strong> / {totalLevels}</p>
-          <button type="button" className="primary-button" onClick={startGame}>
+          <button type="button" className="primary-button" data-testid="play-again" onClick={startGame}>
             Play Again
           </button>
-          <button type="button" className="secondary-button" onClick={() => setPhase('landing')}>
+          <button type="button" className="secondary-button" onClick={moveToLanding}>
             Back to Landing Page
           </button>
         </div>
@@ -128,12 +149,12 @@ export const App = () => {
     return (
       <div className="card game-card">
         <div className="game-header">
-          <p className="level-pill">Level {levelIndex + 1} / {totalLevels}</p>
-          <p className="lives">Lives: {'❤️'.repeat(lives)}</p>
+          <p className="level-pill" data-testid="level-indicator">Level {levelIndex + 1} / {totalLevels}</p>
+          <p className="lives" data-testid="lives-indicator">Lives: {'❤️'.repeat(lives)}</p>
         </div>
 
         <p className="instruction">Compute the result:</p>
-        <div className="expression" role="math">
+        <div className="expression" role="math" aria-label="fraction expression">
           <FractionDisplay value={currentExpression.left} />
           <span className="operation">{currentExpression.operation}</span>
           <FractionDisplay value={currentExpression.right} />
@@ -155,7 +176,7 @@ export const App = () => {
           }}
         />
 
-        <button type="button" className="primary-button" onClick={submitAnswer}>
+        <button type="button" className="primary-button" data-testid="check-answer" onClick={submitAnswer}>
           Check Answer
         </button>
 
@@ -169,6 +190,14 @@ export const App = () => {
       <div className="bg-bubble bubble-a" />
       <div className="bg-bubble bubble-b" />
       <div className="bg-bubble bubble-c" />
+      <button
+        type="button"
+        className="audio-toggle"
+        aria-label={isMuted ? 'Enable sound' : 'Mute sound'}
+        onClick={toggleMuted}
+      >
+        {isMuted ? '🔇 Sound Off' : '🔊 Sound On'}
+      </button>
       {content}
     </main>
   );
